@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock</title>
+  <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="sectionheading">
+  <h1>Stock Management</h1>
+  <button id="openModalBtn">+ Add Stock</button>
+</div>
+
+<div class="salestable-container">
+  <table class="salestable">
+    <thead>
+    <tr>
+      <th>S.no</th>
+      <th>id</th>
+      <th>Product name</th>
+      <th>Quantity</th>
+      <th>Cost Price</th>
+      <th>Total Value</th>
+      <th>Add</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="stock, index : ${stock}">
+      <td th:text="${index.index + 1}"></td>
+      <td th:text="${stock.stockid}"></td>
+      <td th:text="${stock.productname}"></td>
+      <td th:text="${stock.stockquantity}"></td>
+      <td th:text="${stock.costprice}"></td>
+      <td th:text="${stock.totalvalue}"></td>
+      <td>
+        <button class="add-stock-btn">Add</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal" id="Modal">
+  <button class="close-btn" id="closeModalBtn">&times;</button>
+  <h3>Add New Stock</h3>
+  <form class="modalForm" th:action="@{/addstock}" method="post">
+    <input type="text" name="productname" placeholder="Product Name" required>
+    <button type="submit">Add Stock</button>
+  </form>
+</div>
+
+<div class="modal" id="addModal">
+  <button class="close-btn" id="closeaddStock">&times;</button>
+  <h3>Add More</h3>
+  <form class="modalForm" th:action="@{/addmorestock}" method="post">
+    <input type="hidden" name="stockid" value="">
+    <input type="text" name="stockquantity" placeholder="Quantity" required>
+    <input type="text" name="costprice" placeholder="Cost Price" required>
+    <input type="text" name="totalvalue" placeholder="Total Value" readonly>
+    <select name="supplierid" required>
+      <option value="">Select Supplier Company</option>
+      <option th:each="supplier : ${suppliers}" th:value="${supplier.supplierid}" th:text="${supplier.suppliercompanyname}"></option>
+    </select>
+    <input type="number" name="moneypaidtosupplier" placeholder="Amount Paid" required>
+    <input type="number" name="moneypendingtosupplier" placeholder="Pending Amount" readonly>
+    <button type="submit">Add Stock</button>
+  </form>
+</div>
+
+<script th:src="@{/js/stock-management.js}"></script>
+</body>
+</html>

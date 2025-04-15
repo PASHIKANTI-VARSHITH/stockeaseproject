@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Management</title>
+  <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="sectionheading">
+  <h1>Staff</h1>
+  <button id="openModalBtn">+ Add Staff</button>
+</div>
+
+<div class="salestable-container">
+  <table class="salestable">
+    <thead>
+    <tr>
+      <th>Employee ID</th>
+      <th>Employee Name</th>
+      <th>Mobile Number</th>
+      <th>Role</th>
+      <th>Salary</th>
+      <th>Joining Date</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="employee : ${employees}">
+      <td th:text="${employee.staffid}"></td>
+      <td th:text="${employee.employeename}"></td>
+      <td th:text="${employee.employeemobilenumber}"></td>
+      <td th:text="${employee.employeerole}"></td>
+      <td th:text="${employee.employeesalary}"></td>
+      <td th:text="${employee.employeejoiningdate}"></td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal" id="Modal">
+  <button class="close-btn" id="closeModalBtn">&times;</button>
+  <h3>Add New Employee</h3>
+  <form class="modalForm" th:action="@{/addStaff}" method="post">
+    <input type="text" name="staffid" placeholder="Employee ID" required>
+    <input type="text" name="employeename" placeholder="Employee Name" required>
+    <input type="text" name="employeemobilenumber" placeholder="Employee Mobile Number" required>
+    <input type="text" name="employeerole" placeholder="Employee Role" required>
+    <input type="number" name="employeesalary" placeholder="Employee Salary" required>
+    <input type="date" name="employeejoiningdate" required>
+    <button type="submit">Add Employee</button>
+  </form>
+</div>
+
+</body>
+</html>

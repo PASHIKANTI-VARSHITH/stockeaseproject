@@ -1,0 +1,45 @@
+<!--expenses.html-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdraw</title>
+  <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="sectionheading">
+  <h1>Withdraws</h1>
+  <button id="openModalBtn">+ Add Withdraw</button>
+</div>
+
+<div class="salestable-container">
+  <table class="salestable">
+    <thead>
+    <tr>
+      <th>S.no</th>
+      <th>Withdraw Amount</th>
+      <th>Date</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="wds, index : ${withdraws}">
+      <td th:text="${index.index + 1}"></td>
+      <td th:text="${wds.withdrawamount}"></td>
+      <td th:text="${wds.withdrawdate}"></td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal" id="Modal">
+  <button class="close-btn" id="closeModalBtn">&times;</button>
+  <h3>Add New Deposition</h3>
+  <form class="modalForm" th:action="@{/addWithdraw}" method="post">
+    <input type="number" name="withdrawamount" placeholder="Amount" required>
+    <input type="date" name="withdrawdate" required>
+    <button type="submit">Add Withdraw</button>
+  </form>
+</div>
+</body>
+</html>

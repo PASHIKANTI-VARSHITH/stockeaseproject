@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" th:if="${_csrf != null}"/>
+  <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}" th:if="${_csrf != null}"/>
+  <title>Billing</title>
+  <link rel="stylesheet" th:href="@{/css/billing.css}">
+  <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="billing-container">
+  <h1>Billing</h1>
+
+  <div class="customer-info">
+    <h2>Customer Information</h2>
+    <form id="customer-form">
+      <div class="form-group">
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName" name="customerName" required>
+      </div>
+      <div class="form-group">
+        <label for="customerMobile">Mobile Number:</label>
+        <input type="text" id="customerMobile" name="customerMobile" required>
+      </div>
+    </form>
+  </div>
+
+  <div class="add-item">
+    <h2>Add Item</h2>
+    <div class="form-group">
+      <label for="searchProduct">Search/Select Product:</label>
+      <select id="searchProduct">
+        <option value="">-- Select Product --</option>
+      </select>
+      <button id="addItemBtn">Add Item</button>
+    </div>
+  </div>
+
+  <div id="bill-items">
+    <h2>Bill Items</h2>
+    <table id="bill-table">
+      <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Sale Price</th>
+        <th>Quantity</th>
+        <th>Total</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <div class="total-bill">
+      <h3>Total Bill: <span id="totalAmount">0.00</span></h3>
+    </div>
+  </div>
+
+  <div class="payment-info">
+    <h2>Payment Information</h2>
+    <div class="form-group">
+      <label for="amountPaid">Amount Paid:</label>
+      <input type="number" id="amountPaid" name="amountPaid" value="0.00" step="0.01" required>
+    </div>
+    <button id="makeBillBtn" disabled>Make Bill</button>
+    <div id="payment-error" class="info-message" style="display:none;">Note: Amount paid is less than total bill. Remaining amount will be added to customer pending.</div>
+  </div>
+
+  <div class="modal" id="addItemModal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeAddItemModal">&times;</button>
+      <h3>Enter Item Details</h3>
+      <form id="addItemForm">
+        <input type="hidden" id="selectedProductId">
+        <input type="hidden" id="selectedProductName">
+        <div class="form-group">
+          <label for="salePrice">Sale Price:</label>
+          <input type="number" id="salePrice" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="quantity">Quantity:</label>
+          <input type="number" id="quantity" min="1" step="1" required>
+        </div>
+        <button type="button" id="confirmAddItemBtn">Add to Bill</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Load products for dropdown
+      fetchProducts();
+
+      // Setup event listeners
+      document.getElementById('addItemBtn').addEventListener('click', openAddItemModal);
+      document.getElementById('closeAddItemModal').addEventListener('click', closeAddItemModal);
+      document.getElementById('confirmAddItemBtn').addEventListener('click', addItemToBill);
+      document.getElementById('amountPaid').addEventListener('input', validatePayment);
+      document.getElementById('makeBillBtn').addEventListener('click', createBill);
+  });
+
+  // Global variables
+  let products = [];
+  let billItems = [];
+  let totalBillAmount = 0;
+
+  // Fetch products from server
+  function fetchProducts() {
+      fetch('/api/products')
+          .then(response => response.json())
+          .then(data => {
+              products = data;
+              const dropdown = document.getElementById('searchProduct');
+
+              // Clear dropdown
+              while (dropdown.options.length > 1) {
+                  dropdown.remove(1);
+              }
+
+              // Add products to dropdown
+              products.forEach(product => {
+                  const option = document.createElement('option');
+                  option.value = product.stockid;
+                  option.textContent = `${product.productname} (Available: ${product.stockquantity})`;
+                  dropdown.appendChild(option);
+              });
+          })
+          .catch(error => console.error('Error fetching products:', error));
+  }
+
+  // Open add item modal
+  function openAddItemModal() {
+      const productDropdown = document.getElementById('searchProduct');
+      const selectedProductId = productDropdown.value;
+
+      if (!selectedProductId) {
+          alert('Please select a product first.');
+          return;
+      }
+
+      const selectedProduct = products.find(p => p.stockid == selectedProductId);
+      if (selectedProduct) {
+          document.getElementById('selectedProductId').value = selectedProductId;
+          document.getElementById('selectedProductName').value = selectedProduct.productname;
+
+          document.getElementById('quantity').value = 1;
+
+          // Show the modal
+          document.getElementById('addItemModal').style.display = 'block';
+      }
+  }
+
+  // Close add item modal
+  function closeAddItemModal() {
+      document.getElementById('addItemModal').style.display = 'none';
+  }
+
+  // Add item to bill
+  function addItemToBill() {
+      const productId = document.getElementById('selectedProductId').value;
+      const productName = document.getElementById('selectedProductName').value;
+      const salePrice = parseFloat(document.getElementById('salePrice').value);
+      const quantity = parseFloat(document.getElementById('quantity').value);
+
+      if (!productId || isNaN(salePrice) || isNaN(quantity) || quantity <= 0) {
+          alert('Please enter valid sale price and quantity.');
+          return;
+      }
+
+      // Check if product has enough stock
+      const selectedProduct = products.find(p => p.stockid == productId);
+      if (selectedProduct.stockquantity < quantity) {
+          alert(`Not enough stock available. Available: ${selectedProduct.stockquantity}`);
+          return;
+      }
+
+      // Calculate total
+      const total = salePrice * quantity;
+
+      // Add item to bill items array
+      const newItem = {
+          productId: productId,
+          productName: productName,
+          salePrice: salePrice,
+          quantity: quantity,
+          total: total
+      };
+
+      billItems.push(newItem);
+
+      // Add row to bill table
+      const tableBody = document.querySelector('#bill-table tbody');
+      const newRow = document.createElement('tr');
+      newRow.dataset.index = billItems.length - 1;
+
+      newRow.innerHTML = `
+          <td>${productName}</td>
+          <td>${salePrice.toFixed(2)}</td>
+          <td>${quantity}</td>
+          <td>${total.toFixed(2)}</td>
+          <td><button class="remove-item-btn">Remove</button></td>
+      `;
+
+      tableBody.appendChild(newRow);
+
+      // Add event listener to remove button
+      const removeBtn = newRow.querySelector('.remove-item-btn');
+      removeBtn.addEventListener('click', function() {
+          removeItemFromBill(parseInt(newRow.dataset.index));
+      });
+
+      // Update total
+      updateTotalBill();
+
+      // Close modal
+      closeAddItemModal();
+
+      // Enable make bill button if there are items and customer info is filled
+      checkMakeBillEnabled();
+  }
+
+  // Remove item from bill
+  function removeItemFromBill(index) {
+      billItems.splice(index, 1);
+
+      // Redraw table
+      const tableBody = document.querySelector('#bill-table tbody');
+      tableBody.innerHTML = '';
+
+      billItems.forEach((item, idx) => {
+          const row = document.createElement('tr');
+          row.dataset.index = idx;
+
+          row.innerHTML = `
+              <td>${item.productName}</td>
+              <td>${item.salePrice.toFixed(2)}</td>
+              <td>${item.quantity}</td>
+              <td>${item.total.toFixed(2)}</td>
+              <td><button class="remove-item-btn">Remove</button></td>
+          `;
+
+          tableBody.appendChild(row);
+
+          // Add event listener to remove button
+          const removeBtn = row.querySelector('.remove-item-btn');
+          removeBtn.addEventListener('click', function() {
+              removeItemFromBill(parseInt(row.dataset.index));
+          });
+      });
+
+      // Update total
+      updateTotalBill();
+
+      // Check if make bill button should be enabled
+      checkMakeBillEnabled();
+  }
+
+  // Update total bill amount
+  function updateTotalBill() {
+      totalBillAmount = billItems.reduce((sum, item) => sum + item.total, 0);
+      document.getElementById('totalAmount').textContent = totalBillAmount.toFixed(2);
+
+      // Also check payment validation
+      validatePayment();
+  }
+
+  // Validate payment amount
+  function validatePayment() {
+      const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+      const paymentError = document.getElementById('payment-error');
+
+      if (amountPaid < totalBillAmount) {
+          paymentError.style.display = 'block';
+      } else {
+          paymentError.style.display = 'none';
+      }
+  }
+
+  // Check if make bill button should be enabled
+  function checkMakeBillEnabled() {
+      const customerName = document.getElementById('customerName').value.trim();
+      const customerMobile = document.getElementById('customerMobile').value.trim();
+
+      const makeBillBtn = document.getElementById('makeBillBtn');
+      makeBillBtn.disabled = !(billItems.length > 0 && customerName && customerMobile);
+  }
+
+  // Create bill
+  function createBill() {
+      const customerName = document.getElementById('customerName').value.trim();
+      const customerMobile = document.getElementById('customerMobile').value.trim();
+      const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+
+      if (!customerName || !customerMobile) {
+          alert('Please enter customer name and mobile number.');
+          return;
+      }
+
+      if (billItems.length === 0) {
+          alert('Please add at least one item to the bill.');
+          return;
+      }
+
+      // Prepare data
+      const billData = {
+          customerName: customerName,
+          customerMobile: customerMobile,
+          totalAmount: totalBillAmount,
+          amountPaid: amountPaid,
+          items: billItems
+      };
+
+      // Get CSRF token if available
+      const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+      // Send data to server
+      fetch('/api/create-bill', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              ...(csrfHeader && csrfToken ? { [csrfHeader]: csrfToken } : {})
+          },
+          body: JSON.stringify(billData)
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert('Bill created successfully!');
+              // Reset form
+              resetBillingForm();
+              // Refresh products list
+              fetchProducts();
+          } else {
+              alert('Error creating bill: ' + data.message);
+          }
+      })
+      .catch(error => {
+          console.error('Error creating bill:', error);
+          alert('Error creating bill. Please try again.');
+      });
+  }
+
+  // Reset billing form
+  function resetBillingForm() {
+      document.getElementById('customerName').value = '';
+      document.getElementById('customerMobile').value = '';
+      document.getElementById('amountPaid').value = '0.00';
+
+      // Clear bill items
+      billItems = [];
+      document.querySelector('#bill-table tbody').innerHTML = '';
+
+      // Update total
+      updateTotalBill();
+
+      // Disable make bill button
+      document.getElementById('makeBillBtn').disabled = true;
+  }
+
+  // Event listeners for customer form fields
+  document.getElementById('customerName').addEventListener('input', checkMakeBillEnabled);
+  document.getElementById('customerMobile').addEventListener('input', checkMakeBillEnabled);
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!--expenses.html-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses</title>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="sectionheading">
+    <h1>Expenses</h1>
+    <button id="openModalBtn">+ Add Expense</button>
+</div>
+
+<div class="salestable-container">
+    <table class="salestable">
+        <thead>
+        <tr>
+            <th>S.no</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="expense, index : ${expenses}">
+            <td th:text="${index.index + 1}"></td>
+            <td th:text="${expense.expensesname}"></td>
+            <td th:text="${expense.createdAt}"></td>
+            <td th:text="${expense.expenseamount}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="Modal">
+    <button class="close-btn" id="closeModalBtn">&times;</button>
+    <h3>Add New Expense</h3>
+    <form class="modalForm" th:action="@{/addExpense}" method="post">
+        <input type="text" name="expensesname" placeholder="Expense Name" required>
+        <input type="number" name="expenseamount" placeholder="Amount" required>
+        <input type="date" name="date" required>
+        <button type="submit">Add Expense</button>
+    </form>
+</div>
+</body>
+</html>

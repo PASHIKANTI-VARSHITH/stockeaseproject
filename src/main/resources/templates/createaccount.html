@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.com">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .createaccount {
+            display: flex;
+            width: 900px;
+            height: 550px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Left side - Image */
+        .caimg {
+            width: 40%;
+            background: url('../images/createaccount.JPG') center/cover no-repeat;
+        }
+
+        /* Right side - Form with scrolling */
+        .cadetails {
+            width: 60%;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .cadetails h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .cadetails h4 {
+            text-align: left;
+            cursor: pointer;
+        }
+        .cadetails input, .cadetails select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .cadetails select {
+            color: #666;
+        }
+
+        .cadetails button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #fb6d07, #f83a0b);
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .cadetails button:hover {
+            background: linear-gradient(45deg, #fa4b06, #f80707);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .createaccount {
+                flex-direction: column;
+                width: 90%;
+                height: auto;
+            }
+
+            .caimg {
+                width: 100%;
+                height: 200px;
+            }
+
+            .cadetails {
+                width: 100%;
+                height: auto;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="createaccount">
+    <div class="caimg"></div>  <!-- Left Side Image -->
+    <div class="cadetails"> <!-- Right Side Scrollable Form -->
+        <a href="/home"><h4> <i class='bx bx-arrow-back'></i> home</h4></a>
+        <form th:action="@{/saveuser}" method="post" th:object="${user}">
+            <h2>Create an Account</h2>
+            <input type="text" th:name="username" placeholder="Full Name" required>
+            <input type="text" th:name="usermobilenumber" placeholder="Mobile Number" required>
+            <input type="email" th:name="useremail" placeholder="Email" required>
+            <input type="text" th:name="shopname" placeholder="Shop Name">
+            <input type="text" th:name="gstnumber" placeholder="GST Number (Optional)">
+            <input type="password" th:name="password" placeholder="Password" required>
+            <input type="password" th:name="retrypassword" placeholder="Confirm Password" required>
+            <button type="submit">Create Account</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

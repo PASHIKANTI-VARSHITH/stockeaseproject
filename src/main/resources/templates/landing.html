@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.com">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>landing</title>
+  <link rel="stylesheet" th:href="@{/css/landing.css}">
+  <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+  <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" th:if="${_csrf != null}"/>
+  <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}" th:if="${_csrf != null}"/>
+</head>
+<body>
+<!-- *****container start**** -->
+<div class="container">
+  <!-- *****leftside start**** -->
+  <div class="leftside">
+    <div class="top">
+      <div class="hlogo"> <img src="images/logo.png" alt=""></div>
+      <div class="close">
+        <span><button id="close-btn"><i class='bx bx-x'></i></button></span>
+      </div>
+    </div>
+    <div class="sidebar">
+
+      <a href="#" onclick="loadSection('billing',this)" class="option">
+        <span><i class='bx bx-desktop'></i></span>
+        <h3>Billing</h3>
+      </a>
+      <a href="#" onclick="loadSection('sales',this)" class="option">
+        <span><i class='bx bx-bar-chart-square'></i></span>
+        <h3>Sales</h3>
+      </a>
+      <a href="#"onclick="loadSection('Customer',this)" class="option">
+        <span><i class='bx bx-group'></i></span>
+        <h3>Customers</h3>
+      </a>
+      <a href="#" onclick="loadSection('suppliers',this)" class="option">
+        <span><i class='bx bx-group'></i></span>
+        <h3>Suppliers</h3>
+      </a>
+      <a href="#" onclick="loadSection('stock',this)" class="option">
+        <span><i class='bx bx-package'></i></span>
+        <h3>Stock</h3>
+      </a>
+      <a href="#" onclick="loadSection('expenses',this)" class="option">
+        <span><i class='bx bx-spreadsheet'></i></span>
+        <h3>Expenses</h3>
+      </a>
+      <a href="#" onclick="loadSection('dashboard.html')" class="option">
+        <span><i class='bx bx-bell'></i></span>
+        <h3>Messages</h3>
+      </a>
+      <a href="#">
+        <span><i class='bx bx-notepad'></i></span>
+        <h3>Feedback</h3>
+      </a>
+      <a href="#" onclick="loadSection('deposition',this)" class="option">
+        <span><i class='bx bx-cart' ></i></span>
+        <h3>Deposition</h3>
+      </a>
+      <a href="#" onclick="loadSection('withdraw',this)" class="option">
+        <span><i class='bx bx-notepad'></i></span>
+        <h3>Withdrawls</h3>
+      </a>
+      <a href="#" onclick="loadSection('staff',this)" class="option">
+        <span><i class='bx bx-notepad'></i></span>
+        <h3>Staff</h3>
+      </a>
+      <a href="/logout">
+        <span><i class='bx bx-log-out'></i></span>
+        <h3>Logout</h3>
+      </a>
+    </div>
+  </div>
+  <!-- *****leftside end**** -->
+  <!-- *****rightside start**** -->
+  <div class="rightside">
+    <div class="rtop">
+      <button id="menu-bar">
+        <span><i class='bx bx-menu'></i></span>
+      </button>
+      <div class="companyname">
+        <h1 th:text="${user.shopname}" >Sri Sri Shop</h1>
+      </div>
+    </div>
+    <div id="sections">
+
+    </div>
+
+  </div>
+  <!-- *****rightside end**** -->
+</div>
+<!-- *****container end**** -->
+
+
+<script>
+
+  <!-- nav bar :-->
+  const sidemenu = document.querySelector('.leftside');
+  const menubtn = document.querySelector('#menu-bar');
+  const closebtn = document.querySelector('#close-btn');
+
+  menubtn.addEventListener('click', () => {
+      sidemenu.style.display = "block";
+  });
+  closebtn.addEventListener('click', () => {
+      sidemenu.style.display = "none";
+  });
+
+  <!-- loading sections :-->
+  function loadSection(section, element) {
+      console.log("Loading section:", section);
+
+      fetch('/' + section)
+          .then(response => response.text())
+          .then(data => {
+              document.getElementById('sections').innerHTML = data;
+
+              // Call setupModalListeners specifically for the loaded section
+              if (section === 'suppliers') {
+                  setupSupplierModalListeners(); // New function for supplier modals
+              } else if (section === 'billing') {
+                  setupBillingListeners(); // Setup billing specific listeners
+              } else {
+                  setupModalListeners(); // Existing function for other modals
+              }
+              console.log("Modal listeners set up for", section);
+          })
+          .catch(error => console.error("Error loading section:", error));
+
+      const options = document.querySelectorAll('.option');
+      options.forEach(option => option.classList.remove('active'));
+      if (element) element.classList.add('active');
+  }
+  <!-- loading section complete-->
+
+
+  <!--setupmodelisterner start-->
+  function setupModalListeners() {
+      const modal = document.getElementById("Modal");
+      const openModalBtn = document.getElementById("openModalBtn");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+
+      if (modal && openModalBtn && closeModalBtn) {
+          openModalBtn.onclick = () => modal.style.display = "block";
+          closeModalBtn.onclick = () => modal.style.display = "none";
+          window.onclick = event => {
+              if (event.target === modal) modal.style.display = "none";
+          };
+      }
+
+      // Add Stock Modal handling
+      const addModal = document.getElementById('addModal');
+      const closeAddStockBtn = document.getElementById('closeaddStock');
+      let currentStockId = null;
+
+      // Get all "Add" buttons in the table using class selector
+      const addButtons = document.querySelectorAll('.add-stock-btn');
+
+      addButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              // Get the current row
+              const row = this.closest('tr');
+              // Get the stock ID from the row
+              currentStockId = row.querySelector('td:nth-child(2)').textContent;
+
+              // Add a hidden input field to the form to pass the stock ID
+              const form = addModal.querySelector('form');
+
+              // Check if the hidden input already exists
+              let hiddenInput = form.querySelector('input[name="stockid"]');
+              if (!hiddenInput) {
+                  hiddenInput = document.createElement('input');
+                  hiddenInput.type = 'hidden';
+                  hiddenInput.name = 'stockid';
+                  form.appendChild(hiddenInput);
+              }
+              hiddenInput.value = currentStockId;
+
+              // Show the modal
+              addModal.style.display = 'block';
+          });
+      });
+
+      closeAddStockBtn.addEventListener('click', function() {
+          addModal.style.display = 'none';
+      });
+
+      // Dynamic calculations for quantity, cost price, and total value
+      const quantityInput = document.querySelector('input[name="stockquantity"]');
+      const costPriceInput = document.querySelector('input[name="costprice"]');
+      const totalValueInput = document.querySelector('input[name="totalvalue"]');
+      const amountPaidInput = document.querySelector('input[name="moneypaidtosupplier"]');
+      const amountPendingInput = document.querySelector('input[name="moneypendingtosupplier"]');
+
+      // Calculate total value when quantity or cost price changes
+      function calculateTotalValue() {
+          if (quantityInput.value && costPriceInput.value) {
+              const quantity = parseFloat(quantityInput.value);
+              const costPrice = parseFloat(costPriceInput.value);
+              const total = quantity * costPrice;
+              totalValueInput.value = total.toFixed(2);
+
+              // Also update pending amount if amount paid is already entered
+              if (amountPaidInput.value) {
+                  calculatePendingAmount();
+              }
+          }
+      }
+
+      // Calculate pending amount when total value or amount paid changes
+      function calculatePendingAmount() {
+          if (totalValueInput.value && amountPaidInput.value) {
+              const totalValue = parseFloat(totalValueInput.value);
+              const amountPaid = parseFloat(amountPaidInput.value);
+              const pending = totalValue - amountPaid;
+              amountPendingInput.value = pending.toFixed(2);
+          }
+      }
+
+      quantityInput.addEventListener('input', calculateTotalValue);
+      costPriceInput.addEventListener('input', calculateTotalValue);
+      totalValueInput.addEventListener('input', calculatePendingAmount);
+      amountPaidInput.addEventListener('input', calculatePendingAmount);
+  }
+  <!--setupmodelisterner end-->
+
+
+  <!-- Setup Billing Listeners -->
+  function setupBillingListeners() {
+      // Load products for dropdown
+      fetchProducts();
+
+      // Setup event listeners
+      document.getElementById('addItemBtn')?.addEventListener('click', openAddItemModal);
+      document.getElementById('closeAddItemModal')?.addEventListener('click', closeAddItemModal);
+      document.getElementById('confirmAddItemBtn')?.addEventListener('click', addItemToBill);
+      document.getElementById('amountPaid')?.addEventListener('input', validatePayment);
+      document.getElementById('makeBillBtn')?.addEventListener('click', createBill);
+
+      // Add event listeners for customer form fields
+      document.getElementById('customerName')?.addEventListener('input', checkMakeBillEnabled);
+      document.getElementById('customerMobile')?.addEventListener('input', checkMakeBillEnabled);
+  }
+
+  // Global variables for billing
+  let products = [];
+  let billItems = [];
+  let totalBillAmount = 0;
+
+  // Fetch products from server
+  function fetchProducts() {
+      fetch('/api/products')
+          .then(response => response.json())
+          .then(data => {
+              products = data;
+              const dropdown = document.getElementById('searchProduct');
+              if (!dropdown) return;
+
+              // Clear dropdown
+              while (dropdown.options.length > 1) {
+                  dropdown.remove(1);
+              }
+
+              // Add products to dropdown
+              products.forEach(product => {
+                  const option = document.createElement('option');
+                  option.value = product.stockid;
+                  option.textContent = `${product.productname} (Available: ${product.stockquantity})`;
+                  dropdown.appendChild(option);
+              });
+          })
+          .catch(error => console.error('Error fetching products:', error));
+  }
+
+  // Open add item modal
+  function openAddItemModal() {
+      const productDropdown = document.getElementById('searchProduct');
+      if (!productDropdown) return;
+
+      const selectedProductId = productDropdown.value;
+
+      if (!selectedProductId) {
+          alert('Please select a product first.');
+          return;
+      }
+
+      const selectedProduct = products.find(p => p.stockid == selectedProductId);
+      if (selectedProduct) {
+          document.getElementById('selectedProductId').value = selectedProductId;
+          document.getElementById('selectedProductName').value = selectedProduct.productname;
+          document.getElementById('quantity').value = 1;
+
+          // Show the modal
+          document.getElementById('addItemModal').style.display = 'block';
+      }
+  }
+
+  // Close add item modal
+  function closeAddItemModal() {
+      const modal = document.getElementById('addItemModal');
+      if (modal) {
+          modal.style.display = 'none';
+      }
+  }
+
+  // Add item to bill
+  function addItemToBill() {
+      const productId = document.getElementById('selectedProductId')?.value;
+      const productName = document.getElementById('selectedProductName')?.value;
+      const salePriceInput = document.getElementById('salePrice');
+      const quantityInput = document.getElementById('quantity');
+
+      if (!productId || !salePriceInput || !quantityInput) return;
+
+      const salePrice = parseFloat(salePriceInput.value);
+      const quantity = parseFloat(quantityInput.value);
+
+      if (!productId || isNaN(salePrice) || isNaN(quantity) || quantity <= 0) {
+          alert('Please enter valid sale price and quantity.');
+          return;
+      }
+
+      // Check if product has enough stock
+      const selectedProduct = products.find(p => p.stockid == productId);
+      if (selectedProduct.stockquantity < quantity) {
+          alert(`Not enough stock available. Available: ${selectedProduct.stockquantity}`);
+          return;
+      }
+
+      // Calculate total
+      const total = salePrice * quantity;
+
+      // Add item to bill items array
+      const newItem = {
+          productId: productId,
+          productName: productName,
+          salePrice: salePrice,
+          quantity: quantity,
+          total: total
+      };
+
+      billItems.push(newItem);
+
+      // Add row to bill table
+      const tableBody = document.querySelector('#bill-table tbody');
+      if (!tableBody) return;
+
+      const newRow = document.createElement('tr');
+      newRow.dataset.index = billItems.length - 1;
+
+      newRow.innerHTML = `
+          <td>${productName}</td>
+          <td>${salePrice.toFixed(2)}</td>
+          <td>${quantity}</td>
+          <td>${total.toFixed(2)}</td>
+          <td><button class="remove-item-btn">Remove</button></td>
+      `;
+
+      tableBody.appendChild(newRow);
+
+      // Add event listener to remove button
+      const removeBtn = newRow.querySelector('.remove-item-btn');
+      removeBtn.addEventListener('click', function() {
+          removeItemFromBill(parseInt(newRow.dataset.index));
+      });
+
+      // Update total
+      updateTotalBill();
+
+      // Close modal
+      closeAddItemModal();
+
+      // Enable make bill button if there are items and customer info is filled
+      checkMakeBillEnabled();
+  }
+
+  // Remove item from bill
+  function removeItemFromBill(index) {
+      billItems.splice(index, 1);
+
+      // Redraw table
+      const tableBody = document.querySelector('#bill-table tbody');
+      if (!tableBody) return;
+
+      tableBody.innerHTML = '';
+
+      billItems.forEach((item, idx) => {
+          const row = document.createElement('tr');
+          row.dataset.index = idx;
+
+          row.innerHTML = `
+              <td>${item.productName}</td>
+              <td>${item.salePrice.toFixed(2)}</td>
+              <td>${item.quantity}</td>
+              <td>${item.total.toFixed(2)}</td>
+              <td><button class="remove-item-btn">Remove</button></td>
+          `;
+
+          tableBody.appendChild(row);
+
+          // Add event listener to remove button
+          const removeBtn = row.querySelector('.remove-item-btn');
+          removeBtn.addEventListener('click', function() {
+              removeItemFromBill(parseInt(row.dataset.index));
+          });
+      });
+
+      // Update total
+      updateTotalBill();
+
+      // Check if make bill button should be enabled
+      checkMakeBillEnabled();
+  }
+
+  // Update total bill amount
+  function updateTotalBill() {
+      totalBillAmount = billItems.reduce((sum, item) => sum + item.total, 0);
+      const totalElement = document.getElementById('totalAmount');
+      if (totalElement) {
+          totalElement.textContent = totalBillAmount.toFixed(2);
+      }
+
+      // Also check payment validation
+      validatePayment();
+  }
+
+  // Validate payment amount
+  function validatePayment() {
+      const amountPaidInput = document.getElementById('amountPaid');
+      const paymentError = document.getElementById('payment-error');
+
+      if (!amountPaidInput || !paymentError) return;
+
+      const amountPaid = parseFloat(amountPaidInput.value) || 0;
+
+      if (amountPaid < totalBillAmount) {
+          paymentError.style.display = 'block';
+      } else {
+          paymentError.style.display = 'none';
+      }
+  }
+
+  // Check if make bill button should be enabled
+  function checkMakeBillEnabled() {
+      const customerNameInput = document.getElementById('customerName');
+      const customerMobileInput = document.getElementById('customerMobile');
+      const makeBillBtn = document.getElementById('makeBillBtn');
+
+      if (!customerNameInput || !customerMobileInput || !makeBillBtn) return;
+
+      const customerName = customerNameInput.value.trim();
+      const customerMobile = customerMobileInput.value.trim();
+
+      makeBillBtn.disabled = !(billItems.length > 0 && customerName && customerMobile);
+  }
+
+  // Create bill
+  function createBill() {
+      const customerNameInput = document.getElementById('customerName');
+      const customerMobileInput = document.getElementById('customerMobile');
+      const amountPaidInput = document.getElementById('amountPaid');
+
+      if (!customerNameInput || !customerMobileInput || !amountPaidInput) return;
+
+      const customerName = customerNameInput.value.trim();
+      const customerMobile = customerMobileInput.value.trim();
+      const amountPaid = parseFloat(amountPaidInput.value) || 0;
+
+      if (!customerName || !customerMobile) {
+          alert('Please enter customer name and mobile number.');
+          return;
+      }
+
+      if (billItems.length === 0) {
+          alert('Please add at least one item to the bill.');
+          return;
+      }
+
+      // Prepare data
+      const billData = {
+          customerName: customerName,
+          customerMobile: customerMobile,
+          totalAmount: totalBillAmount,
+          amountPaid: amountPaid,
+          items: billItems
+      };
+
+      // Get CSRF token if available
+      const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+      // Send data to server
+      fetch('/api/create-bill', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              ...(csrfHeader && csrfToken ? { [csrfHeader]: csrfToken } : {})
+          },
+          body: JSON.stringify(billData)
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert('Bill created successfully!');
+              // Reset form
+              resetBillingForm();
+              // Refresh products list
+              fetchProducts();
+          } else {
+              alert('Error creating bill: ' + data.message);
+          }
+      })
+      .catch(error => {
+          console.error('Error creating bill:', error);
+          alert('Error creating bill. Please try again.');
+      });
+  }
+
+  // Reset billing form
+  function resetBillingForm() {
+      const customerNameInput = document.getElementById('customerName');
+      const customerMobileInput = document.getElementById('customerMobile');
+      const amountPaidInput = document.getElementById('amountPaid');
+      const tableBody = document.querySelector('#bill-table tbody');
+      const makeBillBtn = document.getElementById('makeBillBtn');
+
+      if (customerNameInput) customerNameInput.value = '';
+      if (customerMobileInput) customerMobileInput.value = '';
+      if (amountPaidInput) amountPaidInput.value = '0.00';
+
+      // Clear bill items
+      billItems = [];
+      if (tableBody) tableBody.innerHTML = '';
+
+      // Update total
+      updateTotalBill();
+
+      // Disable make bill button
+      if (makeBillBtn) makeBillBtn.disabled = true;
+  }
+
+  // New function specifically for Supplier modal event listeners
+  function setupSupplierModalListeners() {
+      const editModal = document.getElementById("suppliereditModal");
+      const closeEditModalBtn = document.getElementById("closeSupplierModalBtn");
+
+      if (editModal && closeEditModalBtn) {
+          closeEditModalBtn.onclick = () => editModal.style.display = "none";
+          window.onclick = event => {
+              if (event.target === editModal) editModal.style.display = "none";
+          };
+      }
+
+      document.querySelectorAll(".edit-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+              if (!editModal) {
+                  console.error("Edit modal not found!");
+                  return;
+              }
+              editModal.style.display = "block";
+              document.getElementById("edit_id").value = btn.dataset.id;
+              document.getElementById("edit_company").value = btn.dataset.company;
+              document.getElementById("edit_contact").value = btn.dataset.contact;
+              document.getElementById("edit_mobile").value = btn.dataset.mobile;
+              document.getElementById("edit_address").value = btn.dataset.address;
+              document.getElementById("edit_pending").value = btn.dataset.pending;
+              document.getElementById("edit_paid").value = btn.dataset.paid;
+          });
+      });
+
+      const modal = document.getElementById("Modal"); // Add Supplier Modal
+      const openModalBtn = document.getElementById("openModalBtn");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+
+      if (modal && openModalBtn && closeModalBtn) {
+          openModalBtn.onclick = () => modal.style.display = "block";
+          closeModalBtn.onclick = () => modal.style.display = "none";
+          window.onclick = event => {
+              if (event.target === modal) modal.style.display = "none";
+          };
+      }
+  }
+
+  window.onload = () => {
+      fetch('/billing')
+          .then(response => response.text())
+          .then(data => {
+              document.getElementById('sections').innerHTML = data;
+              setupModalListeners();
+          })
+          .catch(error => console.error("Error loading initial section:", error));
+  };
+</script>
+</body>
+</html>

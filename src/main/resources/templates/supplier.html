@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier</title>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="sectionheading">
+    <h1>Supplier</h1>
+    <button id="openModalBtn">+ Supplier</button>
+</div>
+
+<div class="salestable-container">
+    <table class="salestable">
+        <thead>
+        <tr>
+            <th>S.No</th>
+            <th>ID</th>
+            <th>Company Name</th>
+            <th>Contact Name</th>
+            <th>Mobile Number</th>
+            <th>Address</th>
+            <th>Money In Pending</th>
+            <th>Total Money Paid</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="supplier, index : ${supplierdetails}">
+            <td th:text="${index.index + 1}"></td>
+            <td th:text="${supplier.supplierid}"></td>
+            <td th:text="${supplier.suppliercompanyname}"></td>
+            <td th:text="${supplier.suppliercontactname}"></td>
+            <td th:text="${supplier.suppliermobilenumber}"></td>
+            <td th:text="${supplier.supplieraddress}"></td>
+            <td th:text="${supplier.supplierpendingamount}"></td>
+            <td th:text="${supplier.suppliertotalamountpaid}"></td>
+            <td>
+                <button class="edit-btn"
+                        th:attr="data-id=${supplier.supplierid},
+                    data-company=${supplier.suppliercompanyname},
+                    data-contact=${supplier.suppliercontactname},
+                    data-mobile=${supplier.suppliermobilenumber},
+                    data-address=${supplier.supplieraddress},
+                    data-pending=${supplier.supplierpendingamount},
+                    data-paid=${supplier.suppliertotalamountpaid}">Edit</button>
+            </td>
+
+            <td>
+                <a th:href="@{'/delete-supplier/' + ${supplier.supplierid}}">Delete</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal" id="Modal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeModalBtn">&times;</button>
+        <h3>Add New Supplier</h3>
+        <form class="modalForm" th:action="@{/addsupplier}" method="post">
+            <input type="text" name="suppliercompanyname" placeholder="Company Name" required>
+            <input type="text" name="suppliercontactname" placeholder="Contact Name" required>
+            <input type="text" name="suppliermobilenumber" placeholder="Mobile Number" required>
+            <input type="text" name="supplieraddress" placeholder="Address" required>
+            <input type="number" name="supplierpendingamount" placeholder="Pending Amount" required>
+            <input type="number" name="suppliertotalamountpaid" placeholder="Total Amount Paid" required>
+            <button type="submit">Add Supplier</button>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal" id="suppliereditModal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeSupplierModalBtn">&times;</button>
+        <h3>Edit Supplier</h3>
+        <form class="modalForm" th:action="@{/updatesupplier}" method="post">
+            <input type="hidden" name="supplierid" id="edit_id">
+            <input type="text" name="suppliercompanyname" id="edit_company" required>
+            <input type="text" name="suppliercontactname" id="edit_contact" required>
+            <input type="text" name="suppliermobilenumber" id="edit_mobile" required>
+            <input type="text" name="supplieraddress" id="edit_address" required>
+            <input type="number" name="supplierpendingamount" id="edit_pending" required>
+            <input type="number" name="suppliertotalamountpaid" id="edit_paid" required>
+            <button type="submit">Update Supplier</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Replace the entire script section in supplier.html with this
+document.addEventListener("DOMContentLoaded", function () {
+    const addModal = document.getElementById("Modal");
+    const openAddBtn = document.getElementById("openModalBtn");
+    const closeAddBtn = document.getElementById("closeModalBtn");
+
+    const editModal = document.getElementById("suppliereditModal");
+    const closeEditBtn = document.getElementById("closeSupplierModalBtn");
+
+    openAddBtn.onclick = () => addModal.style.display = "block";
+    closeAddBtn.onclick = () => addModal.style.display = "none";
+
+    closeEditBtn.onclick = () => editModal.style.display = "none";
+
+    window.onclick = function (event) {
+        if (event.target === addModal) addModal.style.display = "none";
+        if (event.target === editModal) editModal.style.display = "none";
+    };
+
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            console.log("Edit button clicked");
+
+            // Get data attributes directly from the button element
+            const id = this.getAttribute("data-id");
+            const company = this.getAttribute("data-company");
+            const contact = this.getAttribute("data-contact");
+            const mobile = this.getAttribute("data-mobile");
+            const address = this.getAttribute("data-address");
+            const pending = this.getAttribute("data-pending");
+            const paid = this.getAttribute("data-paid");
+
+            console.log("Loading supplier data:", id, company, contact);
+
+            // Set form fields
+            document.getElementById("edit_id").value = id;
+            document.getElementById("edit_company").value = company;
+            document.getElementById("edit_contact").value = contact;
+            document.getElementById("edit_mobile").value = mobile;
+            document.getElementById("edit_address").value = address;
+            document.getElementById("edit_pending").value = pending;
+            document.getElementById("edit_paid").value = paid;
+
+            // Show the modal
+            editModal.style.display = "block";
+        });
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.com">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextGen Super Store</title>
+    <style>
+        *{
+    margin: 0;
+    padding: 0;
+}
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: url("../images/login.JPG");
+
+    background-size: cover;
+}
+
+.container{
+    background-color:transparent;
+    backdrop-filter: blur(10px);
+    width: 300px;
+    height: 400px;
+    width: 40%;
+    box-shadow: 0 0 20px 0 rgb(17, 16, 16);
+
+}
+.details{
+    z-index: 1000;
+    padding: 10px;
+
+}
+.wed{
+    z-index: 100;
+    width: 40%;
+    justify-content: center;
+    align-items: center;
+}
+
+.container h1{
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 40px;
+    font-family: cursive;
+    display: grid;
+}
+.user{
+    border: 1px solid black;
+    margin: 20px 5px;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    background-color:white;
+    border-radius: 15px;
+}
+.user input{
+    width: 100%;
+    height: 30px;
+    border: none;
+    border-radius: 15px;
+    outline: none;
+    padding-left: 5px;
+}
+.user i{
+  font-size: 25px;
+}
+/* +++++++++++++++++++++++++++++++++ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.login-box {
+    padding: 40px;
+    /* box-shadow: 5px 5px 5px 5px  rgb(121, 200, 9); */
+    /* border-radius: 10px; */
+    text-align: center;
+}
+
+.login-box h2 {
+    margin-bottom: 20px;
+    color: white;
+}
+
+.textbox {
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+.container h4{
+    padding: 10px;
+    cursor: pointer;
+}
+.login-box h4:hover{
+    color: rgb(84, 82, 82);
+}
+.textbox input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(45deg, #fb6d07, #f83a0b);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.login-btn:hover {
+    background: linear-gradient(45deg, #fa4b06, #f80707);
+}
+
+
+/* ------responsive------- */
+@media (max-width:614px){
+    .box{
+        display: none;
+    }
+    .container{
+        border: 2px solid white;
+        border-radius: 10px;
+    }
+}
+    </style>
+
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+<div class="container">
+    <a href="/home"><h4> <i class='bx bx-arrow-back'></i> home</h4></a>
+    <div class="login-box">
+        <h2>Login</h2>
+        <form th:action="@{/login}" method="post">
+            <div class="textbox">
+                <input type="text" placeholder="Registered Mobile Number" name="usermobilenumber" required>
+            </div>
+            <div class="textbox">
+                <input type="password" placeholder="Password" name="password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+            <p class="error" th:if="${error}" th:text="${error}"></p>
+        </form>
+    </div>
+</div>
+</body>
+</html>

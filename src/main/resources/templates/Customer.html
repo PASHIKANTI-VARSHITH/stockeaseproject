@@ -1,0 +1,35 @@
+<!--expenses.html-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers</title>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+<body>
+<div class="salestable-container">
+    <table class="salestable">
+        <thead>
+        <tr>
+            <th>S.no</th>
+            <th>Customer Name</th>
+            <th>Customer Mobile Number</th>
+            <th>Total Sales</th>
+            <th>Pending Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="customer, index : ${customers}">
+            <td th:text="${index.index + 1}"></td>
+            <td th:text="${customer.customerName}"></td>
+            <td th:text="${customer.customerMobileNumber}"></td>
+            <td th:text="${customer.customerTotalSales}"></td>
+            <td th:text="${customer.moneyInPending}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
