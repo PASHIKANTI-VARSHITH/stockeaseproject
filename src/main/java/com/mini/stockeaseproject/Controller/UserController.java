@@ -14,9 +14,9 @@ public class UserController {
     @Autowired
     private UserService service;
 
-    @GetMapping("/home")
+    @GetMapping("/index")
     public String home(){
-        return "home";
+        return "index";
     }
 
     @GetMapping("/login")
@@ -70,7 +70,7 @@ public class UserController {
     @GetMapping("/logout")
     public String logout(HttpSession session){
         session.invalidate();
-        return "redirect:/home";
+        return "redirect:/index";
     }
 
     @GetMapping("/dashboard")
